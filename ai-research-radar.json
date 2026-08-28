@@ -1,0 +1,971 @@
+{
+  "name": "AI Research Radar",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://export.arxiv.org/api/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search_query",
+              "value": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
+            },
+            {
+              "name": "start",
+              "value": "0"
+            },
+            {
+              "name": "max_results",
+              "value": "30"
+            },
+            {
+              "name": "sortBy",
+              "value": "submittedDate"
+            },
+            {
+              "name": "sortOrder",
+              "value": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        -112
+      ],
+      "id": "c8618dc8-61b9-4e65-9cae-5f153f179114",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -112
+      ],
+      "id": "a34a3fbd-43a5-4eb1-8266-900329f0746c",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "feed.entry",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -112
+      ],
+      "id": "ad04ab86-b1a3-4ddb-9c64-ec8e089fefe0",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "content.1.text",
+              "renameField": true,
+              "outputFieldName": "summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        -112
+      ],
+      "id": "952b2609-9e2a-444b-8556-cf83a3808497",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aef12955-5cc9-4cfb-9fd5-ac2c772c98f3",
+              "name": "digest",
+              "value": "={{ $json.summary.join('\\n\\n---\\n\\n') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2720,
+        -112
+      ],
+      "id": "5e78afb2-24f8-413e-b03a-0db415d68409",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "AI Research Radar – Weekly Digest",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3168,
+        -112
+      ],
+      "id": "b8658df5-d1b9-49aa-b1ce-0b9e6f90f568",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.digest }}",
+        "destinationKey": "html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        -112
+      ],
+      "id": "81d038b0-5959-4456-9726-1427e66c26d6",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "={{ $json.model }}",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.scoring_prompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -16
+      ],
+      "id": "808f5889-4083-4091-93f7-6ac6ea167350",
+      "name": "Score Relevance"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b079ad19-fbe4-4956-8fb3-73c9566a0998",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "c5f67925-6296-4159-9170-c6bdbb7b98d6",
+              "name": "summary",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "2702fbe6-261b-41fc-9818-66153b3dc7c8",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "4dac15d7-5fdf-4543-aa30-97a28eaff490",
+              "name": "published",
+              "value": "={{ $json.published }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        -112
+      ],
+      "id": "7fdafe64-4e7e-450d-8248-0dbdc71a1d8e",
+      "name": "Create Paper Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d6c6e0e-2610-4ea5-a9af-fda6dc58420a",
+              "name": "title",
+              "value": "={{ $('Scoring Config').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "88b28c15-5fb5-4587-87b4-88aec26a620f",
+              "name": "summary",
+              "value": "={{ $('Scoring Config').item.json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "08102335-c09a-4d98-9d5d-f676625215d6",
+              "name": "id",
+              "value": "={{ $('Scoring Config').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "30746fee-292c-4a55-879d-f43e5305af4b",
+              "name": "published",
+              "value": "={{ $('Scoring Config').item.json.published }}",
+              "type": "string"
+            },
+            {
+              "id": "51774a9c-aa4f-46dd-ae0c-c7a38ae8b91a",
+              "name": "relevance_score",
+              "value": "={{ JSON.parse($json.content[0].text).score }}",
+              "type": "number"
+            },
+            {
+              "id": "66059d3f-4239-481d-86c6-045f50f672a9",
+              "name": "relevance_reason",
+              "value": "={{ JSON.parse($json.content[0].text).reason }}",
+              "type": "string"
+            },
+            {
+              "id": "a6269249-7ed0-4fdd-83e1-24903eab9a46",
+              "name": "input_tokens",
+              "value": "={{ $json.usage.input_tokens }}",
+              "type": "number"
+            },
+            {
+              "id": "34dc3e28-7421-4dab-a78a-8f86509cb8bb",
+              "name": "output_tokens",
+              "value": "={{ $json.usage.output_tokens }}",
+              "type": "number"
+            },
+            {
+              "id": "8aeda5b3-30fd-4903-a305-d31136e39b31",
+              "name": "model",
+              "value": "={{ $json.model }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1696,
+        -16
+      ],
+      "id": "f5b21707-a9aa-4234-8044-2c950cb49764",
+      "name": "Attach Score"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-5",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarize this AI research paper for a technically curious reader.\n\nTitle: {{ $json.title }}\nAbstract: {{ $json.summary }}\nURL: {{ $json.id }}\n\nReturn:\n1. A two-sentence summary\n2. The main contribution\n3. Why it matters\n4. One limitation or open question\n5. Three keywords\n\nRelevance score: {{ $json.relevance_score }}/10\nRelevance reason: {{ $json.relevance_reason }}\n\nDisplay both immediately below the paper title in your response.\n\nDo not invent information that is not present in the abstract.\n\nPaper title: {{ $json.title }}\nPaper URL: {{ $json.id }}\n\nBegin your response with:\n## [Paper title](Paper URL)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        -112
+      ],
+      "id": "8c2cc1b1-e6b6-43d7-b7f9-2c3f6acfbf28",
+      "name": "Summarize papers"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a669c4bc-832a-4199-bdfe-75d7c09ebccc",
+              "leftValue": "={{ $json.relevance_score }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1920,
+        -112
+      ],
+      "id": "752ac4d8-c67e-4338-9964-59e1f96679fb",
+      "name": "Scoring Filter"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "=weeks"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "20ceaeb4-6247-4892-93de-7f3c716235cf",
+      "name": "Schedule Trigger",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b465bf13-40a1-4673-a5b0-6e8a263520cd",
+              "name": "run_date",
+              "value": "={{ $now.setZone('Europe/Berlin').toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "31e661c9-e4af-4228-935b-835b29f97ee3",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "4ea924a0-15a5-455a-b1d8-5d9a3a2e6d81",
+              "name": "url",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "ffe1c774-2ee7-4949-a810-c40feb43efda",
+              "name": "model_score",
+              "value": "={{ $json.relevance_score }}",
+              "type": "number"
+            },
+            {
+              "id": "372a57ce-8cff-4a85-a0a0-e819dde03e83",
+              "name": "model_reason",
+              "value": "={{ $json.relevance_reason }}",
+              "type": "string"
+            },
+            {
+              "id": "e7af3f6d-bdd3-4734-9fbe-1e64dd0433b9",
+              "name": "model_included",
+              "value": "={{ $json.relevance_score >= 6 }}",
+              "type": "boolean"
+            },
+            {
+              "id": "5cd9ccd4-339c-4ed6-aa06-a4208e2e2af9",
+              "name": "model",
+              "value": "={{ $json.model }}",
+              "type": "string"
+            },
+            {
+              "id": "f79bc2d6-2ded-47ae-985e-1a533aa75840",
+              "name": "prompt_version",
+              "value": "={{ $('Scoring Config').item.json.prompt_version }}",
+              "type": "string"
+            },
+            {
+              "id": "56b9dc0b-7efa-44f1-877a-f440862eeb66",
+              "name": "scoring_prompt",
+              "value": "={{ $('Scoring Config').item.json.scoring_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "33f25393-0f7c-49be-bc7f-46c89a37cf72",
+              "name": "input_tokens",
+              "value": "={{ $json.input_tokens }}",
+              "type": "number"
+            },
+            {
+              "id": "fb04fd71-a37c-45fb-8144-e4a97dbae305",
+              "name": "output_tokens",
+              "value": "={{ $json.output_tokens }}",
+              "type": "number"
+            },
+            {
+              "id": "861f3e0a-9ff4-442a-8d8e-7d94ec2aa2fc",
+              "name": "input_price_per_million_usd",
+              "value": "={{ $('Scoring Config').item.json.input_price_per_million_usd }}",
+              "type": "number"
+            },
+            {
+              "id": "ad148eb4-6b56-42ba-8209-77bf13e5a3c3",
+              "name": "output_price_per_million_usd",
+              "value": "={{ $('Scoring Config').item.json.output_price_per_million_usd }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1920,
+        80
+      ],
+      "id": "744eb671-e0e1-4399-b0d8-4799892628fa",
+      "name": "Prepare Eval Row"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?gid=768281538#gid=768281538",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1760436373,
+          "mode": "list",
+          "cachedResultName": "Runs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1760436373"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_date": "={{ $json.run_date }}",
+            "title": "={{ $json.title }}",
+            "model_score": "={{ $json.model_score }}",
+            "model_reason": "={{ $json.model_reason }}",
+            "model_included": "={{ $json.model_included }}",
+            "scoring_prompt": "={{ $json.scoring_prompt }}",
+            "prompt_version": "={{ $json.prompt_version }}",
+            "model": "={{ $json.model }}",
+            "run_id": "={{ $execution.id }}",
+            "paper_url": "={{ $json.url }}",
+            "input_tokens": "={{ $json.input_tokens }}",
+            "output_tokens": "={{ $json.output_tokens }}",
+            "input_price_per_million_usd": "={{ $json.input_price_per_million_usd }}",
+            "output_price_per_million_usd": "={{ $json.output_price_per_million_usd }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "paper_url",
+              "displayName": "paper_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "model",
+              "displayName": "model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "prompt_version",
+              "displayName": "prompt_version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "scoring_prompt",
+              "displayName": "scoring_prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "model_score",
+              "displayName": "model_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "model_included",
+              "displayName": "model_included",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "model_reason",
+              "displayName": "model_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "human_relevant",
+              "displayName": "human_relevant",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "correct",
+              "displayName": "correct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tp",
+              "displayName": "tp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fp",
+              "displayName": "fp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fn",
+              "displayName": "fn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tn",
+              "displayName": "tn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "input_tokens",
+              "displayName": "input_tokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output_tokens",
+              "displayName": "output_tokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_tokens",
+              "displayName": "total_tokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "input_price_per_million_usd",
+              "displayName": "input_price_per_million_usd",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output_price_per_million_usd",
+              "displayName": "output_price_per_million_usd",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "estimated_cost_usd",
+              "displayName": "estimated_cost_usd",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2208,
+        80
+      ],
+      "id": "7a8f0702-28af-491c-960c-daa09238b8dc",
+      "name": "Eval Runs"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d584f683-dd9a-4617-8d6b-0cd49908613a",
+              "name": "model",
+              "value": "claude-sonnet-4-6",
+              "type": "string"
+            },
+            {
+              "id": "0a3c5d06-751d-415c-80f3-55f331f9728d",
+              "name": "prompt_version",
+              "value": "baseline_v2_temp0",
+              "type": "string"
+            },
+            {
+              "id": "1c428d70-7d1f-44f2-b65f-991cd4bd0aaf",
+              "name": "scoring_prompt",
+              "value": "=Score how relevant this research paper is to an applied AI engineer interested in:\n\n* LLM agents and agentic workflows\n* RAG, retrieval, embeddings, and vector databases\n* LLM evaluation, testing, reliability, and observability\n* Tool use, memory, orchestration, and MCP\n* Production AI systems, latency, cost, and quality\n* Practical AI automation\n\nPaper title: {{ $json.title }}\nAbstract: {{ $json.summary }}\n\nReturn exactly one overall relevance score as an integer from 0 through 10 inclusive.\n\nThe score MUST NOT be below 0 or above 10. Do not add or total multiple scores.\n\nReturn only:\n{\"score\": 0, \"reason\": \"One concise explanation.\"}\n\nGive high scores only when the paper offers knowledge that could realistically improve the design, evaluation, or operation of applied LLM systems. A paper merely using AI in a specialized domain is not automatically relevant.\n\nFor scores of 7 or higher, prioritize work that directly changes how an applied engineer should design, evaluate, validate, or operate an LLM system. This can include theoretical work when it exposes a concrete failure mode or invalid assumption in production evaluation, calibration, safety, or reliability. Do not give 7+ merely because a paper involves LLM reasoning, memory, retrieval, agents, or latency; research on model-internal reasoning techniques, training methods, or benchmark improvements should remain below 7 unless the contribution transfers clearly to application-layer systems built with existing models.",
+              "type": "string"
+            },
+            {
+              "id": "418948f8-6f43-4e47-827c-0e034be2313c",
+              "name": "input_price_per_million_usd",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "e0f53d6b-366f-492a-94db-30bcec33e32a",
+              "name": "output_price_per_million_usd",
+              "value": 15,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        -16
+      ],
+      "id": "cb51a49e-51a0-43cf-a6d1-6496695c5d73",
+      "name": "Scoring Config"
+    },
+    {
+      "parameters": {
+        "content": "Goal: Rank incoming AI research papers for relevance to an applied AI engineer focused on agents, RAG, evals, reliability, orchestration, and production AI.\nModel: claude-sonnet-4-6\nPrompt version: baseline_v2_temp0\nTemperature: 0\nOutput: integer relevance score 0–10 plus concise reason.\nProduction threshold: score >= 6\nWhy threshold 6: False negatives are more costly than false positives for this use case; the user would rather skim an occasional marginal paper than miss a genuinely useful one.\nDevelopment set: Golden Set, 30 manually labeled papers. This set was used while improving the scoring prompt, so it is development data rather than a clean test set.\nInitial untouched Test Set result at threshold 7: 30 papers; TP 3, FP 0, FN 1, TN 26 → precision 100%, recall 75%, accuracy 96.7%.\nObserved FN: SWE Refactor Bench, consistently scored 6.\nScore stability: Across three identical temperature-0 Test Set runs, 27/30 papers received exactly the same score; the remaining three varied by only 1 point. All four human-relevant papers were completely stable.\nFinal threshold-6 result: TP 4, FP 0, FN 0, TN 26 → precision 100%, recall 100%, accuracy 100% on test_set_v1.\nImportant caveat: Because threshold 6 was selected after inspecting Test Set results, the threshold-6 100% result should be viewed as a post-test system decision, not a pristine untouched generalization estimate. The original threshold-7 result is the cleaner held-out evaluation.\nProduction behavior: Papers scoring 6+ proceed to summarization/digest; lower-scoring papers are filtered out. Raw scores, reasons, tokens, model/prompt versions, dataset, and run IDs are logged to Google Sheets.",
+        "height": 576,
+        "width": 1072
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2176,
+        -832
+      ],
+      "typeVersion": 1,
+      "id": "ffd457c6-7418-4d89-86d2-0e6d36f62d34",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Create Paper Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Relevance": {
+      "main": [
+        [
+          {
+            "node": "Attach Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Paper Fields": {
+      "main": [
+        [
+          {
+            "node": "Scoring Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Score": {
+      "main": [
+        [
+          {
+            "node": "Scoring Filter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Eval Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize papers": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scoring Filter": {
+      "main": [
+        [
+          {
+            "node": "Summarize papers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Eval Row": {
+      "main": [
+        [
+          {
+            "node": "Eval Runs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scoring Config": {
+      "main": [
+        [
+          {
+            "node": "Score Relevance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Berlin",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
