@@ -1,6 +1,8 @@
 # ai-research-radar
 An evaluated n8n workflow for discovering, scoring, and summarizing relevant AI research papers directly to my Gmail inbox.
 
+Hosted deployment: Production workflow runs on Railway and executes independently of the local machine.
+
 ## Workflow
 
 ```mermaid
